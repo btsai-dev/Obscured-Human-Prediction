@@ -25,7 +25,7 @@ from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from progress.bar import Bar
 from common.generators import ObscureGenerator
-
+from common.myutils import get_boxes_keypoint
 
 def main():
     dataset = ObscureGenerator(
@@ -50,21 +50,27 @@ def main():
         obscured_viz = debug["obscured_viz"]
 
         sample_keypoints = obscured_keypoints
+
         for j in range(len(sample_keypoints)):
             v1 = Visualizer(sample_image, metadata=metadata, scale=0.5)
             v1.draw_and_connect_keypoints(torch.from_numpy(gt_keypoints[j]))
+            # np.set_printoptions(precision=3)
+            # np.set_printoptions(suppress=True)
+            # print(gt_keypoints[j])
             v1.draw_box(boxes[j])
             v1_np = v1.output.get_image()
+            cv2.imshow("ORIG", v1_np)
 
             v2 = Visualizer(obscured_viz[j], metadata=metadata, scale=0.5)
             v2.draw_and_connect_keypoints(torch.from_numpy(obscured_keypoints[j]))
             v2.draw_text("RATIO: " + str(ratio), (np.shape(obscured_viz[j])[0] // 2, 100))
-            v2.draw_box(boxes[j])
+            box_j = tuple(get_boxes_keypoint(obscured_keypoints[j]))
+            v2.draw_box(box_j)
             v2_np = v2.output.get_image()
 
-            cv2.imshow("ORIG", v1_np)
             cv2.imshow("RATIO: " + str(ratio), v2_np)
-            cv2.waitKey(0)
+
+    cv2.waitKey(0)
 
 
 if __name__ == '__main__':

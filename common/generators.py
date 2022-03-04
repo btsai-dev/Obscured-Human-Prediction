@@ -22,9 +22,12 @@ from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from pathlib import Path
 import math
+
 ROOT_DIR = str(Path(__file__).resolve().parents[1])
 print(ROOT_DIR)
 sys.path.append(ROOT_DIR)
+
+from common.myutils import get_boxes_keypoint
 
 skeleton_config = {
     'config_file': 'common/keypoint_config/COCO-Keypoints/keypoint_rcnn_R_101_FPN_3x.yaml',
@@ -88,19 +91,12 @@ class ObscureGenerator(Dataset):
         obscured_viz = []
         for keypoints_per_instance in gt_img_keypoints:
             gt_img_np_cpy = copy.deepcopy(gt_img_np)
-            low_x = 999
-            low_y = 999
-            high_x = -999
-            high_y = -999
-            for coord in keypoints_per_instance:
-                if coord[0] > high_x:
-                    high_x = coord[0]
-                if coord[0] < low_x:
-                    low_x = coord[0]
-                if coord[1] > high_y:
-                    high_y = coord[1]
-                if coord[1] < low_y:
-                    low_y = coord[1]
+            box = get_boxes_keypoint(keypoints_per_instance)
+            low_x = box[0]
+            low_y = box[1]
+            high_x = box[2]
+            high_y = box[3]
+
             cutoff = low_y + (1 - ratio) * (high_y - low_y)
             for y_val in range(math.ceil(cutoff), np.shape(gt_img_np_cpy)[0]):
                 gt_img_np_cpy[y_val] = np.zeros((np.shape(gt_img_np_cpy)[1], 3))
