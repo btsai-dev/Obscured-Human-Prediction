@@ -1,0 +1,3 @@
+[submodule "RegGNN"]
+	path = RegGNN
+	url = https://github.com/basiralab/RegGNN
